@@ -1,0 +1,8 @@
+.healthcheck-controller > .row-fluid {
+  margin-top: 4em;
+  margin-bottom: 4em;
+}
+
+.json-display {
+  display: inline-block;
+}
