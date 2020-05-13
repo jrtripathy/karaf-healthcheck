@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.jai.samples</groupId>
+        <artifactId>karaf-healthcheck</artifactId>
+        <version>1.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>healthcheck-jmx-bundle</artifactId>
+    <packaging>bundle</packaging>
+    <name>Healthcheck:: ${project.artifactId}</name>
+    <description>${project.name}</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
+            <version>${camel.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.healthedge.c4</groupId>
+            <artifactId>connector-healthcheck-bundle</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client</artifactId>
+            <version>${google-http-client.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-jackson</artifactId>
+            <version>${google-http-client.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+
+        <plugins>
+        	<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- to generate the MANIFEST-FILE of the bundle -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Private-Package>
+                            com.healthedge.connector.healthcheck.util
+                        </Private-Package>
+                        <Export-Package>
+                            com.healthedge.connector.healthcheck.jmx
+                        </Export-Package>
+                        <Import-Package>
+                            org.apache.commons.lang,
+                            javax.xml.soap,
+                            javax.xml.stream,
+                            org.w3c.dom,
+                            org.w3c.dom.*,
+                            org.xml.*,
+                            javax.activation,
+                            javax.xml.transform,
+                            javax.xml.transform.dom,
+                            org.apache.activemq.pool,
+                            org.apache.activemq.camel.component,
+                            org.apache.camel.component.jms,
+                            org.jasypt.encryption.pbe,
+                            org.jasypt.encryption.pbe.config,
+                            com.healthedge.connector.server.jasypt,
+							*
+						</Import-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <Include-Resource>{maven-resources}</Include-Resource>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
