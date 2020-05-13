@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cxf="http://camel.apache.org/schema/blueprint/cxf"
+    xmlns:camel="http://camel.apache.org/schema/blueprint" xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
+    xmlns:enc="http://karaf.apache.org/xmlns/jasypt/v1.0.0"
+    xsi:schemaLocation="
+    http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+    http://camel.apache.org/schema/blueprint/cxf http://camel.apache.org/schema/cxf/camel-cxf-2.16.1-blueprint.xsd
+    http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+    <cm:property-placeholder id="hrp_props" persistent-id="com.healthedge.connector.payor" placeholder-prefix="${hrp." />
+    <cm:property-placeholder id="jms_props" persistent-id="com.healthedge.connector.jms" placeholder-prefix="${hrq." />
+    <enc:property-placeholder>
+        <enc:encryptor class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+            <property name="config">
+                <bean class="com.healthedge.connector.server.jasypt.ConnectorPBEConfig"/>
+            </property>
+        </enc:encryptor>
+    </enc:property-placeholder>
+
+    <reference id="hrcmDS" interface="javax.sql.DataSource" filter="(osgi.jndi.service.name=jdbc/cm/oltp)" availability="optional"/>
+    <reference id="oltpDS" interface="javax.sql.DataSource" filter="(osgi.jndi.service.name=jdbc/oltpDS)" availability="optional"/>
+    <reference id="dwDS" interface="javax.sql.DataSource" filter="(osgi.jndi.service.name=jdbc/dwDS)" availability="optional"/>
+
+    <bean id="payorEJBCallUtil" class="com.healthedge.connector.healthcheck.util.PayorEJBCallUtil" scope="prototype">
+        <property name="username" value="${hrp.integration.username}" />
+        <property name="password" value="${hrp.integration.password}" />
+        <property name="contextFactory" value="${hrp.java.naming.factory.initial}" />
+        <property name="url" value="${hrp.wls.jndi.url}" />
+    </bean>
+
+    <bean id="fileFetchUtil" class="com.healthedge.connector.healthcheck.util.FileFetchUtil" scope="prototype">
+        <property name="username" value="${hrp.integration.username}" />
+        <property name="password" value="${hrp.integration.password}" />
+        <property name="url" value="${hrp.wls.fileupload.url}" />
+    </bean>
+
+    <bean id="amqUtil" class="com.healthedge.connector.healthcheck.util.ActiveMQUtil" scope="prototype">
+        <property name="username" value="${hrq.userName}" />
+        <property name="password" value="${hrq.password}" />
+        <property name="url" value="${hrq.brokerURL}" />
+    </bean>
+
+    <bean id="healthCheckService" class="com.healthedge.connector.healthcheck.processor.impl.HealthCheckRestServiceImpl" scope="prototype">
+        <property name="featuresService" ref="featureService"/>
+        <property name="bundleContext" ref="blueprintBundleContext"/>
+        <property name="hrCM" ref="hrcmDS"/>
+        <property name="hrOLTP" ref="oltpDS"/>
+        <property name="hrDW" ref="dwDS"/>
+        <property name="ejbCallUtil" ref="payorEJBCallUtil"/>
+        <property name="activeMQUtil" ref="amqUtil"/>
+        <property name="fileFetchUtil" ref="fileFetchUtil"/>
+    </bean>
+
+    <!-- to setup camel servlet with OSGi HttpService -->
+    <reference id="httpService" interface="org.osgi.service.http.HttpService"/>
+
+    <bean class="org.apache.camel.component.servlet.osgi.OsgiServletRegisterer"
+          init-method="register"
+          destroy-method="unregister">
+        <property name="alias" value="/connector/rest"/>
+        <property name="httpService" ref="httpService"/>
+        <property name="servlet" ref="camelServlet"/>
+    </bean>
+
+    <bean id="camelServlet" class="org.apache.camel.component.servlet.CamelHttpTransportServlet"/>
+
+    <!--version start -->
+    <reference id="featureService" interface="org.apache.karaf.features.FeaturesService"/>
+    <bean id="versionService" class="com.healthedge.connector.healthcheck.processor.impl.VersionRestServiceImpl" scope="prototype">
+        <property name="featuresService" ref="featureService"/>
+        <property name="bundleContext" ref="blueprintBundleContext"/>
+    </bean>
+
+    <camelContext id="HealthcheckCamelContext" useMDCLogging="true" trace="false"
+    			streamCache="true"	xmlns="http://camel.apache.org/schema/blueprint">
+
+        <restConfiguration component="servlet" bindingMode="json" contextPath="/connector/rest">
+            <dataFormatProperty key="prettyPrint" value="true"/>
+        </restConfiguration>
+
+        <!-- defines the rest services using the context-path /healthcheck -->
+        <rest path="/healthcheck" consumes="application/json" produces="application/json">
+            <description>Healthcheck rest service</description>
+
+            <!-- this is a rest GET for healthcheck -->
+            <get uri="/" outType="com.healthedge.connector.healthcheck.model.HealthCheckBean">
+                <to uri="bean:healthCheckService?method=getStatus(${header.CamelHttpUrl})"/>
+            </get>
+
+        </rest>
+
+        <rest path="/version" consumes="application/json" produces="application/json">
+            <description>Version rest service</description>
+
+            <!-- this is a rest GET for healthcheck -->
+            <get uri="/" outType="com.healthedge.connector.healthcheck.model.ConnectorVersionBean">
+                <to uri="bean:versionService?method=getVersions()"/>
+            </get>
+
+        </rest>
+    </camelContext>
+
+</blueprint>
