@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="${project.artifactId}-${project.version}">
+    <feature name="${project.artifactId}" description="${project.name}" version="${project.version}" install="manual">
+        <feature>camel-cxf</feature>
+        <feature>camel-jaxb</feature>
+        <feature>camel-jackson</feature>
+        <feature>camel-servlet</feature>
+        <feature>activemq-camel</feature>
+
+        <!--<bundle>wrap:mvn:org.jsoup/jsoup/${jsoup.version}$Bundle-SymbolicName=JSoup&amp;Bundle-Version=${jsoup.version}&amp;Export-Package=org.jsoup*;version=${jsoup.version}</bundle>-->
+    </feature>
+</features>

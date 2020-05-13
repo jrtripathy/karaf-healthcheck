@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+		<groupId>com.jai.samples</groupId>
+        <artifactId>karaf-healthcheck</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>healthcheck-repos</artifactId>
+    <packaging>kar</packaging>
+    <name>Healthcheck:: Healthcheck Repository</name>
+    <description>${project.name}</description>
+    <dependencies>
+        <dependency>
+            <groupId>com.jai.samples</groupId>
+            <artifactId>healthcheck-bundle</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <configuration>
+                    <startLevel>90</startLevel>
+                    <includeTransitiveDependency>false</includeTransitiveDependency>
+                    <addTransitiveFeatures>true</addTransitiveFeatures>
+                    <aggregateFeatures>true</aggregateFeatures>
+
+                    <archive>
+                        <manifestEntries>
+                            <Karaf-Feature-Start>false</Karaf-Feature-Start>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>    
+</project>
